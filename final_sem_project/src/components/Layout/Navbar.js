@@ -1,0 +1,84 @@
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+
+const Navbar = () => {
+  const { currentUser, userData, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Failed to logout:', error);
+    }
+  };
+
+  return (
+    <nav className="bg-white shadow-md">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <span className="text-2xl">🏥</span>
+              <span className="text-xl font-bold text-primary-700">MediReach</span>
+            </Link>
+            {currentUser && (
+              <div className="ml-10 flex space-x-4">
+                <Link to="/dashboard" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                  Dashboard
+                </Link>
+                <Link to="/requests" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                  Requests
+                </Link>
+                <Link to="/donors" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                  Donors
+                </Link>
+                {userData && (userData.role === 'admin' || userData.role === 'ngo' || userData.role === 'hospital') && (
+                  <Link to="/analytics" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                    Analytics
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center space-x-4">
+            {currentUser ? (
+              <>
+                <div className="flex items-center space-x-2">
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-700">{userData?.name}</p>
+                    <p className="text-xs text-gray-500 capitalize">{userData?.role}</p>
+                  </div>
+                  {userData?.verified ? (
+                    <span className="text-green-500" title="Verified">✓</span>
+                  ) : (
+                    <span className="text-yellow-500" title="Pending Verification">⏳</span>
+                  )}
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="text-gray-700 hover:text-primary-600 px-4 py-2 rounded-lg transition text-sm font-medium">
+                  Login
+                </Link>
+                <Link to="/register" className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition text-sm font-medium">
+                  Register
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
