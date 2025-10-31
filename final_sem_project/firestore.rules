@@ -37,44 +37,103 @@ service cloud.firestore {
     
     // Requests collection
     match /requests/{requestId} {
-      // Anyone authenticated can read requests
+      // Authenticated users can read requests (app-level filters should be used client-side)
       allow read: if isSignedIn();
-      
-      // Receivers and organizations can create requests
+
+      // Receivers (owners) and organizations can create requests. Ensure the creating user
+      // is the receiverId in the request payload to prevent spoofing.
       allow create: if isSignedIn() && (
-        hasRole('receiver') || 
-        hasRole('ngo') || 
-        hasRole('hospital') || 
-        hasRole('admin')
+        (request.resource.data.receiverId == request.auth.uid) ||
+        hasRole('admin') || hasRole('ngo') || hasRole('hospital')
       );
-      
-      // Organizations and admins can update requests
+
+      // Allow updates by admins/orgs or the original receiver (owner) so client flows that
+      // update matchedDonors/status immediately after create are supported.
       allow update: if isSignedIn() && (
-        hasRole('admin') || 
-        hasRole('ngo') || 
-        hasRole('hospital')
+        hasRole('admin') || hasRole('ngo') || hasRole('hospital') ||
+        resource.data.receiverId == request.auth.uid
       );
-      
-      // Only admins can delete
+
+      // Only admins can delete requests
       allow delete: if isSignedIn() && hasRole('admin');
     }
     
     // Notifications collection
     match /notifications/{notificationId} {
-      // Users can only read their own notifications
-      allow read: if isSignedIn() && 
-        resource.data.userId == request.auth.uid;
-      
-      // System and admins can create notifications
+      // Users can read notifications that target them; admins can read all
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || hasRole('admin')
+      );
+
+      // Creation: allow a signed-in user to create notifications that they themselves create
+      // (createdBy == request.auth.uid) or allow admins. This prevents arbitrary users from
+      // creating notifications on behalf of others.
+      allow create: if isSignedIn() && (
+        request.resource.data.createdBy == request.auth.uid || hasRole('admin')
+      );
+
+      // Users can update their own notifications (e.g., mark as read)
+      allow update: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || hasRole('admin')
+      );
+
+      // Users can delete their own notifications; admins can delete any
+      allow delete: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || hasRole('admin')
+      );
+    }
+
+    // FCM tokens collection: store tokens per-user. Only the token owner (userId) or admin
+    // can create/read/delete tokens. This keeps token management controlled from clients
+    // and the admin panel.
+    match /fcmTokens/{tokenId} {
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || hasRole('admin'));
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || hasRole('admin'));
+      allow update: if false; // no updates - create/delete only
+    }
+
+    // Donations collection: track donation history
+    match /donations/{donationId} {
+      allow read: if isSignedIn() && (
+        resource.data.donorId == request.auth.uid ||
+        resource.data.receiverId == request.auth.uid ||
+        hasRole('admin')
+      );
       allow create: if isSignedIn();
-      
-      // Users can update their own notifications (mark as read)
-      allow update: if isSignedIn() && 
-        resource.data.userId == request.auth.uid;
-      
-      // Users can delete their own notifications
-      allow delete: if isSignedIn() && 
-        resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        resource.data.donorId == request.auth.uid ||
+        hasRole('admin') || hasRole('ngo') || hasRole('hospital')
+      );
+      allow delete: if isSignedIn() && hasRole('admin');
+    }
+
+    // Ratings collection: user ratings and reviews
+    match /ratings/{ratingId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.fromUserId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.fromUserId == request.auth.uid;
+      allow delete: if isSignedIn() && (
+        resource.data.fromUserId == request.auth.uid || hasRole('admin')
+      );
+    }
+
+    // Conversations collection: chat conversations
+    match /conversations/{conversationId} {
+      allow read: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
+      allow update: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow delete: if isSignedIn() && hasRole('admin');
+    }
+
+    // Messages collection: chat messages
+    match /messages/{messageId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.senderId == request.auth.uid;
+      allow delete: if isSignedIn() && (
+        resource.data.senderId == request.auth.uid || hasRole('admin')
+      );
     }
   }
 }

@@ -7,6 +7,17 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import Dashboard from './components/Dashboard/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import CreateRequest from './components/Requests/CreateRequest';
+import RequestsList from './components/Requests/RequestsList';
+import DonorDirectory from './components/Donors/DonorDirectory';
+import Notifications from './components/Notifications/Notifications';
+import VerifyRequests from './components/Requests/VerifyRequests';
+import Analytics from './components/Analytics/Analytics';
+import ComingSoon from './components/ComingSoon';
+import Chat from './components/Chat/Chat';
+import DonationHistory from './components/Donations/DonationHistory';
+import Ratings from './components/Ratings/Ratings';
+import AdminPanel from './components/Admin/AdminPanel';
 import './App.css';
 
 function App() {
@@ -32,37 +43,85 @@ function App() {
             />
 
             {/* Placeholder routes - to be implemented */}
-            <Route 
-              path="/requests" 
+            <Route
+              path="/requests"
               element={
                 <ProtectedRoute>
-                  <ComingSoon title="Requests" />
+                  <RequestsList />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/donors" 
+            <Route
+              path="/donors"
               element={
                 <ProtectedRoute>
-                  <ComingSoon title="Donor Directory" />
+                  <DonorDirectory />
                 </ProtectedRoute>
-              } 
+              }
+            />
+            <Route
+              path="/create-request"
+              element={
+                <ProtectedRoute allowedRoles={["receiver"]}>
+                  <CreateRequest />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/verify-requests"
+              element={
+                <ProtectedRoute allowedRoles={["admin", "ngo", "hospital"]}>
+                  <VerifyRequests />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <Notifications />
+                </ProtectedRoute>
+              }
             />
             <Route 
               path="/analytics" 
               element={
                 <ProtectedRoute allowedRoles={['admin', 'ngo', 'hospital']}>
-                  <ComingSoon title="Analytics Dashboard" />
+                  <Analytics />
                 </ProtectedRoute>
               } 
             />
-            <Route 
-              path="/create-request" 
+            <Route
+              path="/chat"
               element={
-                <ProtectedRoute allowedRoles={['receiver']}>
-                  <ComingSoon title="Create Request" />
+                <ProtectedRoute>
+                  <Chat />
                 </ProtectedRoute>
-              } 
+              }
+            />
+            <Route
+              path="/donation-history"
+              element={
+                <ProtectedRoute allowedRoles={['donor']}>
+                  <DonationHistory />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ratings"
+              element={
+                <ProtectedRoute>
+                  <Ratings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminPanel />
+                </ProtectedRoute>
+              }
             />
 
             {/* Catch all */}
@@ -74,14 +133,5 @@ function App() {
   );
 }
 
-// Temporary Coming Soon Component
-const ComingSoon = ({ title }) => (
-  <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-    <div className="text-center">
-      <h1 className="text-4xl font-bold text-gray-800 mb-4">{title}</h1>
-      <p className="text-gray-600">This feature is coming soon!</p>
-    </div>
-  </div>
-);
-
 export default App;
+

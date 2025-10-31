@@ -32,12 +32,33 @@ const Navbar = () => {
                 <Link to="/requests" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
                   Requests
                 </Link>
+                {userData && (userData.role === 'admin' || userData.role === 'ngo' || userData.role === 'hospital') && (
+                  <Link to="/verify-requests" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                    Verify Requests
+                  </Link>
+                )}
                 <Link to="/donors" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
                   Donors
+                </Link>
+                <Link to="/chat" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                  Chat
+                </Link>
+                {userData && userData.role === 'donor' && (
+                  <Link to="/donation-history" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                    History
+                  </Link>
+                )}
+                <Link to="/ratings" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                  Ratings
                 </Link>
                 {userData && (userData.role === 'admin' || userData.role === 'ngo' || userData.role === 'hospital') && (
                   <Link to="/analytics" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
                     Analytics
+                  </Link>
+                )}
+                {userData && userData.role === 'admin' && (
+                  <Link to="/admin" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                    Admin
                   </Link>
                 )}
               </div>
@@ -57,6 +78,9 @@ const Navbar = () => {
                     <span className="text-yellow-500" title="Pending Verification">⏳</span>
                   )}
                 </div>
+                <Link to="/notifications" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                  🔔
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition text-sm"

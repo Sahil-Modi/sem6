@@ -9,6 +9,7 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
+import { registerForPush } from '../firebase/messagingHelper';
 
 const AuthContext = createContext();
 
@@ -120,6 +121,13 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(user);
       if (user) {
         await fetchUserData(user.uid);
+        // Try to register for push notifications in background (will prompt for permission)
+        try {
+          // fire-and-forget; registration stores token in Firestore
+          registerForPush(user.uid);
+        } catch (err) {
+          console.warn('FCM registration error:', err);
+        }
       } else {
         setUserData(null);
       }
