@@ -118,3 +118,4 @@ export const formatDistance = (distanceKm) => {
   }
   return `${distanceKm.toFixed(1)} km`;
 };
+ 

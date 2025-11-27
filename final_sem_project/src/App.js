@@ -9,7 +9,9 @@ import Dashboard from './components/Dashboard/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import CreateRequest from './components/Requests/CreateRequest';
 import RequestsList from './components/Requests/RequestsList';
+import RequestDetails from './components/Requests/RequestDetails';
 import DonorDirectory from './components/Donors/DonorDirectory';
+import DonorProfile from './components/Donors/DonorProfile';
 import Notifications from './components/Notifications/Notifications';
 import VerifyRequests from './components/Requests/VerifyRequests';
 import Analytics from './components/Analytics/Analytics';
@@ -18,6 +20,7 @@ import Chat from './components/Chat/Chat';
 import DonationHistory from './components/Donations/DonationHistory';
 import Ratings from './components/Ratings/Ratings';
 import AdminPanel from './components/Admin/AdminPanel';
+import { AboutPage, BlogPage, FAQPage, SupportPage, PartnersPage, PrivacyPage, TermsPage, CookiesPage } from './components/PlaceholderPages';
 import './App.css';
 
 function App() {
@@ -52,10 +55,26 @@ function App() {
               }
             />
             <Route
+              path="/requests/:id"
+              element={
+                <ProtectedRoute>
+                  <RequestDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/donors"
               element={
                 <ProtectedRoute>
                   <DonorDirectory />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/donor-profile"
+              element={
+                <ProtectedRoute allowedRoles={["donor"]}>
+                  <DonorProfile />
                 </ProtectedRoute>
               }
             />
@@ -123,6 +142,18 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* Footer Placeholder Pages */}
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/faq" element={<FAQPage />} />
+            <Route path="/support" element={<SupportPage />} />
+            <Route path="/partners" element={<PartnersPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/cookies" element={<CookiesPage />} />
+            <Route path="/how-it-works" element={<AboutPage />} />
+            <Route path="/success-stories" element={<BlogPage />} />
 
             {/* Catch all */}
             <Route path="*" element={<Navigate to="/" />} />

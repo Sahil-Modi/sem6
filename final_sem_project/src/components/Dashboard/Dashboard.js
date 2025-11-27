@@ -237,28 +237,28 @@ const StatCard = ({ title, value, icon, color }) => {
 const QuickActions = ({ role }) => {
   const actions = {
     admin: [
-      { name: 'Verify Organizations', link: '/verify-users', icon: '✓' },
+      { name: 'Verify Requests', link: '/verify-requests', icon: '✓' },
       { name: 'View All Requests', link: '/requests', icon: '📋' },
       { name: 'Analytics', link: '/analytics', icon: '📊' },
-      { name: 'User Management', link: '/users', icon: '👥' }
+      { name: 'Admin Panel', link: '/admin', icon: '👥' }
     ],
     ngo: [
       { name: 'Verify Requests', link: '/verify-requests', icon: '✓' },
       { name: 'View Requests', link: '/requests', icon: '📋' },
-      { name: 'Track Donations', link: '/tracking', icon: '📍' },
-      { name: 'Reports', link: '/analytics', icon: '📊' }
+      { name: 'Donor Directory', link: '/donors', icon: '📍' },
+      { name: 'Analytics', link: '/analytics', icon: '📊' }
     ],
     donor: [
       { name: 'View Urgent Requests', link: '/requests', icon: '🚨' },
-      { name: 'Find Nearby Needs', link: '/donors', icon: '📍' },
-      { name: 'Update Profile', link: '/profile', icon: '👤' },
-      { name: 'My History', link: '/history', icon: '📜' }
+      { name: 'Find Nearby Donors', link: '/donors', icon: '📍' },
+      { name: 'My History', link: '/donation-history', icon: '�' },
+      { name: 'Give Ratings', link: '/ratings', icon: '⭐' }
     ],
     receiver: [
       { name: 'Create Request', link: '/create-request', icon: '➕' },
-      { name: 'My Requests', link: '/my-requests', icon: '📋' },
-      { name: 'Track Status', link: '/tracking', icon: '📍' },
-      { name: 'Find Donors', link: '/donors', icon: '🔍' }
+      { name: 'View All Requests', link: '/requests', icon: '📋' },
+      { name: 'Find Donors', link: '/donors', icon: '�' },
+      { name: 'Chat with Donors', link: '/chat', icon: '�' }
     ]
   };
 
