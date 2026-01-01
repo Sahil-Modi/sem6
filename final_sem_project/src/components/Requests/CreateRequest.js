@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { addDoc, collection, serverTimestamp, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
+import { geocodeAddress, getNearbyDonors, sortByDistance } from '../../utils/geocoding';
 
 const CreateRequest = () => {
   const { currentUser, userData } = useAuth();
@@ -31,11 +32,23 @@ const CreateRequest = () => {
       // Generate unique tracking ID
       const trackingId = `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
       
+      // Geocode location to get coordinates
+      let coordinates = null;
+      try {
+        const geocoded = await geocodeAddress(form.location);
+        if (geocoded) {
+          coordinates = { lat: geocoded.lat, lng: geocoded.lng };
+        }
+      } catch (geoErr) {
+        console.error('Geocoding error:', geoErr);
+      }
+      
       // Create request doc
       const reqRef = await addDoc(collection(db, 'requests'), {
         type: form.type,
         urgency: form.urgency,
         location: form.location,
+        coordinates: coordinates,
         description: form.description,
         status: 'Pending',
         trackingId: trackingId,
@@ -47,30 +60,73 @@ const CreateRequest = () => {
         updatedAt: serverTimestamp()
       });
 
-      // Simple matching: find donors with same location and available
+      // Smart matching: find donors based on location proximity
       const donorsQ = query(
         collection(db, 'users'),
         where('role', '==', 'donor'),
-        where('availability', '==', true),
-        where('location', '==', form.location)
+        where('availability', '==', true)
       );
 
       const donorsSnap = await getDocs(donorsQ);
-      const matched = donorsSnap.docs.map(d => d.id).slice(0, 5);
+      let allDonors = donorsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      
+      let matched = [];
+      
+      if (coordinates) {
+        // Use distance-based matching
+        const nearbyDonors = getNearbyDonors(allDonors, coordinates.lat, coordinates.lng, 50); // 50km radius
+        const sortedDonors = sortByDistance(nearbyDonors, coordinates.lat, coordinates.lng);
+        
+        // Prioritize urgent requests - notify top 10 donors, otherwise top 5
+        const notifyCount = (form.urgency === 'Critical' || form.urgency === 'High') ? 10 : 5;
+        matched = sortedDonors.slice(0, notifyCount).map(d => d.id);
+        
+        // If not enough nearby donors, fallback to location string match
+        if (matched.length < 3) {
+          const locationMatchDonors = allDonors.filter(d => 
+            d.location?.toLowerCase().includes(form.location.toLowerCase()) ||
+            form.location.toLowerCase().includes(d.location?.toLowerCase() || '')
+          );
+          matched = [...matched, ...locationMatchDonors.slice(0, 5 - matched.length).map(d => d.id)];
+        }
+      } else {
+        // Fallback to simple location string matching
+        const locationMatchDonors = allDonors.filter(d => 
+          d.location?.toLowerCase().includes(form.location.toLowerCase()) ||
+          form.location.toLowerCase().includes(d.location?.toLowerCase() || '')
+        );
+        matched = locationMatchDonors.slice(0, 5).map(d => d.id);
+      }
 
       // Update request with matched donors
       if (matched.length > 0) {
         await updateDoc(doc(db, 'requests', reqRef.id), {
-          matchedDonors: matched,
-          status: 'Verified'
+          matchedDonors: matched
         });
 
-        // Create notifications for matched donors
-        for (const donorId of matched) {
+        // Create urgent notifications for matched donors with distance info
+        for (let i = 0; i < matched.length; i++) {
+          const donorId = matched[i];
+          const donor = allDonors.find(d => d.id === donorId);
+          
+          let distanceMsg = '';
+          if (coordinates && donor?.coordinates?.lat && donor?.coordinates?.lng) {
+            const { calculateDistance, formatDistance } = await import('../../utils/geocoding');
+            const distance = calculateDistance(
+              coordinates.lat, coordinates.lng,
+              donor.coordinates.lat, donor.coordinates.lng
+            );
+            distanceMsg = ` (${formatDistance(distance)} away)`;
+          }
+          
+          const urgencyEmoji = form.urgency === 'Critical' ? '🚨' : form.urgency === 'High' ? '⚠️' : '📢';
+          
           await addDoc(collection(db, 'notifications'), {
             userId: donorId,
-            message: `A nearby request (${form.type}) matches your profile.`,
+            message: `${urgencyEmoji} URGENT: ${form.type} needed in ${form.location}${distanceMsg}. Urgency: ${form.urgency}. Tracking ID: ${trackingId}`,
             relatedRequestId: reqRef.id,
+            type: 'urgent_request',
+            urgency: form.urgency,
             status: 'Unread',
             createdBy: currentUser.uid,
             timestamp: serverTimestamp()

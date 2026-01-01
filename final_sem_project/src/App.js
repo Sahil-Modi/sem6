@@ -13,6 +13,7 @@ import RequestDetails from './components/Requests/RequestDetails';
 import DonorDirectory from './components/Donors/DonorDirectory';
 import DonorProfile from './components/Donors/DonorProfile';
 import Notifications from './components/Notifications/Notifications';
+import NotificationSettings from './components/Notifications/NotificationSettings';
 import VerifyRequests from './components/Requests/VerifyRequests';
 import Analytics from './components/Analytics/Analytics';
 import ComingSoon from './components/ComingSoon';
@@ -99,6 +100,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Notifications />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notification-settings"
+              element={
+                <ProtectedRoute>
+                  <NotificationSettings />
                 </ProtectedRoute>
               }
             />

@@ -109,10 +109,21 @@ export const AuthProvider = ({ children }) => {
       const userDoc = await getDoc(doc(db, 'users', uid));
       if (userDoc.exists()) {
         setUserData(userDoc.data());
+        return userDoc.data();
       }
+      return null;
     } catch (error) {
       console.error('Error fetching user data:', error);
+      return null;
     }
+  };
+
+  // Refresh user data
+  const refreshUserData = async () => {
+    if (currentUser) {
+      return await fetchUserData(currentUser.uid);
+    }
+    return null;
   };
 
   // Listen to auth state changes
@@ -144,6 +155,7 @@ export const AuthProvider = ({ children }) => {
     login,
     loginWithGoogle,
     logout,
+    refreshUserData,
     loading
   };
 
