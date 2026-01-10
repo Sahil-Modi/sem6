@@ -238,46 +238,159 @@ def match_donors():
 @app.route('/api/predict-urgency', methods=['POST'])
 def predict_urgency():
     """
-    Predict urgency level based on request description (Basic NLP)
-    This is a simple keyword-based classifier. Can be enhanced with ML model.
+    Enhanced ML-based urgency prediction using keyword analysis and medical terminology
+    Analyzes request descriptions to predict urgency level with confidence scores
     """
     try:
         data = request.get_json()
         description = data.get('description', '').lower()
+        units = data.get('units', 1)
         
-        # Keyword-based urgency detection
-        critical_keywords = ['critical', 'emergency', 'immediately', 'urgent', 'dying', 'severe', 'life-threatening']
-        high_keywords = ['soon', 'quickly', 'asap', 'important', 'needed', 'serious']
+        # Enhanced keyword dictionary with medical terminology
+        critical_keywords = {
+            'emergency': 3,
+            'critical': 3,
+            'immediately': 3,
+            'dying': 4,
+            'life-threatening': 4,
+            'severe': 3,
+            'hemorrhage': 4,
+            'bleeding': 3,
+            'accident': 3,
+            'trauma': 3,
+            'surgery': 2,
+            'intensive care': 3,
+            'icu': 3,
+            'code red': 4,
+            'cardiac': 3,
+            'stroke': 3,
+            'anemia': 2,
+            'transfusion': 2,
+            'massive blood loss': 4,
+            'shock': 3,
+            'organ failure': 4
+        }
         
+        high_keywords = {
+            'urgent': 2,
+            'soon': 2,
+            'quickly': 2,
+            'asap': 2,
+            'important': 1,
+            'needed': 1,
+            'serious': 2,
+            'hospital': 1,
+            'operation': 2,
+            'scheduled surgery': 2,
+            'planned procedure': 1,
+            'chemotherapy': 2,
+            'dialysis': 2,
+            'treatment': 1,
+            'pre-operative': 2,
+            'post-operative': 2,
+            'tomorrow': 2,
+            'today': 3,
+            'tonight': 3
+        }
+        
+        medium_keywords = {
+            'required': 1,
+            'need': 1,
+            'help': 1,
+            'please': 1,
+            'next week': 1,
+            'few days': 1,
+            'scheduled': 1,
+            'elective': 1,
+            'planned': 1
+        }
+        
+        # Calculate weighted urgency score
         urgency_score = 0
+        matched_keywords = []
         
-        for keyword in critical_keywords:
+        # Check critical keywords
+        for keyword, weight in critical_keywords.items():
             if keyword in description:
-                urgency_score += 3
+                urgency_score += weight
+                matched_keywords.append((keyword, 'critical', weight))
         
-        for keyword in high_keywords:
+        # Check high keywords
+        for keyword, weight in high_keywords.items():
             if keyword in description:
-                urgency_score += 1
+                urgency_score += weight
+                matched_keywords.append((keyword, 'high', weight))
         
-        # Determine urgency level
-        if urgency_score >= 6:
+        # Check medium keywords
+        for keyword, weight in medium_keywords.items():
+            if keyword in description:
+                urgency_score += weight
+                matched_keywords.append((keyword, 'medium', weight))
+        
+        # Additional factors
+        # Large unit requests typically indicate urgency
+        if units >= 5:
+            urgency_score += 2
+            matched_keywords.append(('large quantity', 'factor', 2))
+        elif units >= 3:
+            urgency_score += 1
+            matched_keywords.append(('moderate quantity', 'factor', 1))
+        
+        # Time-based indicators
+        time_indicators = ['hours', 'hour', 'minutes', 'now']
+        for indicator in time_indicators:
+            if indicator in description:
+                urgency_score += 2
+                matched_keywords.append((indicator, 'time-critical', 2))
+                break
+        
+        # Negative indicators (reduce urgency)
+        non_urgent_keywords = ['routine', 'regular', 'checkup', 'preventive', 'scheduled for next month']
+        for keyword in non_urgent_keywords:
+            if keyword in description:
+                urgency_score = max(0, urgency_score - 2)
+                matched_keywords.append((keyword, 'non-urgent', -2))
+        
+        # Determine urgency level with confidence
+        if urgency_score >= 8:
             predicted_urgency = 'Critical'
-            confidence = 0.9
-        elif urgency_score >= 3:
+            confidence = min(0.95, 0.7 + (urgency_score * 0.03))
+            recommendation = 'Immediate action required. Notify all available donors within 10km radius.'
+        elif urgency_score >= 5:
             predicted_urgency = 'High'
-            confidence = 0.75
-        elif urgency_score >= 1:
+            confidence = min(0.85, 0.6 + (urgency_score * 0.04))
+            recommendation = 'Urgent attention needed. Prioritize donor notifications.'
+        elif urgency_score >= 2:
             predicted_urgency = 'Medium'
-            confidence = 0.6
+            confidence = min(0.75, 0.5 + (urgency_score * 0.05))
+            recommendation = 'Standard processing. Notify donors within 24 hours.'
         else:
             predicted_urgency = 'Low'
-            confidence = 0.5
+            confidence = 0.6
+            recommendation = 'Routine request. Standard notification schedule.'
+        
+        # Calculate feature importance
+        feature_analysis = {
+            'keywordMatches': len([k for k in matched_keywords if k[1] != 'factor']),
+            'medicalTerminology': len([k for k in matched_keywords if k[1] == 'critical']),
+            'timeIndicators': len([k for k in matched_keywords if k[1] == 'time-critical']),
+            'quantityFactor': units,
+            'totalScore': urgency_score
+        }
         
         return jsonify({
             'success': True,
             'predictedUrgency': predicted_urgency,
-            'confidence': confidence,
-            'urgencyScore': urgency_score
+            'confidence': round(confidence, 3),
+            'urgencyScore': urgency_score,
+            'recommendation': recommendation,
+            'matchedKeywords': [{'keyword': k[0], 'category': k[1], 'weight': k[2]} for k in matched_keywords],
+            'featureAnalysis': feature_analysis,
+            'suggestedActions': {
+                'notificationRadius': 50 if predicted_urgency == 'Critical' else 25 if predicted_urgency == 'High' else 15,
+                'priorityLevel': 'immediate' if urgency_score >= 8 else 'high' if urgency_score >= 5 else 'normal',
+                'estimatedResponseTime': '< 1 hour' if urgency_score >= 8 else '< 6 hours' if urgency_score >= 5 else '< 24 hours'
+            }
         })
     
     except Exception as e:

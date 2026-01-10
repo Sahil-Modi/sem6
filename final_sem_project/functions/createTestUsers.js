@@ -16,8 +16,12 @@
 
 const admin = require('firebase-admin');
 
+const firebaseConfig = {
+  projectId: "medi-reach-6",
+};
+
 try {
-  admin.initializeApp();
+  admin.initializeApp(firebaseConfig);
 } catch (e) {
   // ignore if already initialized
 }

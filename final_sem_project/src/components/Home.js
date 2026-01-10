@@ -271,9 +271,9 @@ const Home = () => {
               </p>
               <div className="flex space-x-4">
                 {['📘', '🐦', '📷', '💼'].map((icon, i) => (
-                  <a key={i} href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-600 transition-all transform hover:scale-110">
+                  <button key={i} type="button" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-600 transition-all transform hover:scale-110">
                     <span>{icon}</span>
-                  </a>
+                  </button>
                 ))}
               </div>
             </div>

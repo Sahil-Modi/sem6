@@ -120,6 +120,72 @@ const RequestDetails = () => {
     }
   };
 
+  const handleCancelRequest = async () => {
+    if (!currentUser || userData.uid !== request.receiverId) {
+      alert('Only the request creator can cancel it');
+      return;
+    }
+
+    if (!['Pending', 'Verified'].includes(request.status)) {
+      alert('Only pending or verified requests can be cancelled');
+      return;
+    }
+
+    const confirmCancel = window.confirm(
+      'Are you sure you want to cancel this request? This action cannot be undone.'
+    );
+
+    if (!confirmCancel) return;
+
+    setUpdating(true);
+    try {
+      await updateDoc(doc(db, 'requests', id), {
+        status: 'Cancelled',
+        cancelledAt: serverTimestamp(),
+        cancelledBy: currentUser.uid,
+        updatedAt: serverTimestamp()
+      });
+
+      // Notify matched donors if any
+      if (request.matchedDonors && request.matchedDonors.length > 0) {
+        for (const donorId of request.matchedDonors) {
+          await addDoc(collection(db, 'notifications'), {
+            userId: donorId,
+            type: 'request_cancelled',
+            title: 'Request Cancelled',
+            message: `The blood request (${request.trackingId}) for ${request.bloodGroup} has been cancelled by the requester.`,
+            requestId: id,
+            read: false,
+            createdAt: serverTimestamp()
+          });
+        }
+      }
+
+      // Notify accepted donors if any
+      if (request.acceptedDonors && request.acceptedDonors.length > 0) {
+        for (const donorId of request.acceptedDonors) {
+          await addDoc(collection(db, 'notifications'), {
+            userId: donorId,
+            type: 'request_cancelled',
+            title: 'Request Cancelled',
+            message: `The blood request (${request.trackingId}) you accepted has been cancelled.`,
+            requestId: id,
+            read: false,
+            createdAt: serverTimestamp()
+          });
+        }
+      }
+
+      setRequest({...request, status: 'Cancelled'});
+      alert('Request has been cancelled successfully');
+      navigate('/requests');
+    } catch (error) {
+      console.error('Error cancelling request:', error);
+      alert('Failed to cancel request: ' + error.message);
+      setUpdating(false);
+    }
+  };
+
   const getStatusColor = (status) => {
     switch(status) {
       case 'Pending': return 'bg-gray-100 text-gray-800 border-gray-300';
@@ -328,6 +394,27 @@ const RequestDetails = () => {
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-4">
+              {/* Edit & Cancel Buttons for Receiver (only for Pending/Verified requests) */}
+              {userData?.uid === request.receiverId && ['Pending', 'Verified'].includes(request.status) && (
+                <div className="flex gap-3 w-full mb-3">
+                  <Link
+                    to={`/requests/edit/${id}`}
+                    className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg text-center"
+                  >
+                    <span className="mr-2">✏️</span>
+                    Edit Request
+                  </Link>
+                  <button
+                    onClick={handleCancelRequest}
+                    disabled={updating}
+                    className="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="mr-2">❌</span>
+                    {updating ? 'Cancelling...' : 'Cancel Request'}
+                  </button>
+                </div>
+              )}
+
               {/* Donor Accept Button */}
               {userData?.role === 'donor' && request.status === 'Verified' && !request.acceptedDonors?.includes(currentUser.uid) && (
                 <button
@@ -354,7 +441,7 @@ const RequestDetails = () => {
 
               {/* Status Update Buttons for Receiver/Admin */}
               {(userData?.role === 'receiver' || userData?.role === 'admin' || userData?.role === 'ngo' || userData?.role === 'hospital') && 
-               request.status !== 'Completed' && request.status !== 'Rejected' && (
+               request.status !== 'Completed' && request.status !== 'Rejected' && request.status !== 'Cancelled' && (
                 <>
                   {request.status === 'Matched' && (
                     <button

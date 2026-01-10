@@ -1,23 +1,26 @@
 /*
-  Example Firebase Cloud Function (HTTP) to send push notifications to a token.
-  Deploy with the Firebase CLI from the functions/ directory.
-
-  This is a minimal example to illustrate server-side FCM sending using the Admin SDK.
-  In production you should secure this endpoint (auth, CORS, validation) or use callable functions.
-
-  Steps:
-  - cd functions
-  - npm init -y
-  - npm install firebase-admin firebase-functions
-  - firebase deploy --only functions
-
-  Example POST body: { "token": "<fcm_token>", "title": "Hello", "body": "Message body" }
+  Firebase Cloud Functions for MediReach
+  
+  Features:
+  - Push notifications (FCM)
+  - Email notifications (Nodemailer)
+  - Automated triggers for user actions
+  
+  Deploy: firebase deploy --only functions
 */
 
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 
 admin.initializeApp();
+
+// Export email service functions
+const emailService = require('./emailService');
+exports.sendWelcomeEmail = emailService.sendWelcomeEmail;
+exports.sendRequestVerifiedEmail = emailService.sendRequestVerifiedEmail;
+exports.sendDonorMatchedEmail = emailService.sendDonorMatchedEmail;
+exports.sendUrgentRequestEmails = emailService.sendUrgentRequestEmails;
+exports.sendDailyDigest = emailService.sendDailyDigest;
 
 exports.sendPush = functions.https.onRequest(async (req, res) => {
   try {

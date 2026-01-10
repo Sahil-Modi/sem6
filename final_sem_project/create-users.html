@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Test Users - MediReach</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #667eea;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .status {
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      margin: 20px 0;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .credentials {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+      font-family: 'Courier New', monospace;
+    }
+    .credentials h3 {
+      margin-top: 0;
+      color: #667eea;
+    }
+    .user-item {
+      margin: 10px 0;
+      padding: 10px;
+      background: white;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🩸 Create MediReach Test Users</h1>
+    
+    <div class="credentials">
+      <h3>Test User Credentials</h3>
+      <p><strong>Password for all users:</strong> <code>Medireach@123</code></p>
+      <div class="user-item">👨‍💼 <strong>Admin:</strong> admin@medireach.com</div>
+      <div class="user-item">🩸 <strong>Donor:</strong> donor@medireach.com</div>
+      <div class="user-item">🏥 <strong>Receiver:</strong> receiver@medireach.com</div>
+      <div class="user-item">🏢 <strong>NGO:</strong> ngo@medireach.com</div>
+      <div class="user-item">🏥 <strong>Hospital:</strong> hospital@medireach.com</div>
+    </div>
+
+    <button id="createBtn" onclick="createAllUsers()">Create All Test Users</button>
+    
+    <div id="status"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth, createUserWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDpxr2fBZGqtNXu3CrirG8bgxVPjbgKawk",
+      authDomain: "medi-reach-6.firebaseapp.com",
+      projectId: "medi-reach-6",
+      storageBucket: "medi-reach-6.firebasestorage.app",
+      messagingSenderId: "271991605837",
+      appId: "1:271991605837:web:de01b1ed21009045082a04"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const PASSWORD = 'Medireach@123';
+
+    const testUsers = [
+      { 
+        email: 'admin@medireach.com', 
+        role: 'admin', 
+        name: 'MediReach Admin',
+        phone: '+91 9876543210',
+        location: 'Mumbai, Maharashtra'
+      },
+      { 
+        email: 'donor@medireach.com', 
+        role: 'donor', 
+        name: 'John Donor',
+        bloodGroup: 'O+',
+        phone: '+91 9876543211',
+        location: 'Delhi, India',
+        availability: true
+      },
+      { 
+        email: 'receiver@medireach.com', 
+        role: 'receiver', 
+        name: 'Sarah Receiver',
+        phone: '+91 9876543212',
+        location: 'Bangalore, Karnataka'
+      },
+      { 
+        email: 'ngo@medireach.com', 
+        role: 'ngo', 
+        name: 'Red Cross India',
+        organizationName: 'Red Cross India',
+        organizationType: 'Healthcare NGO',
+        phone: '+91 9876543213',
+        location: 'Chennai, Tamil Nadu'
+      },
+      { 
+        email: 'hospital@medireach.com', 
+        role: 'hospital', 
+        name: 'Apollo Hospital',
+        organizationName: 'Apollo Hospital',
+        organizationType: 'Multi-specialty Hospital',
+        phone: '+91 9876543214',
+        location: 'Hyderabad, Telangana'
+      }
+    ];
+
+    function addStatus(message, type = 'info') {
+      const statusDiv = document.getElementById('status');
+      const div = document.createElement('div');
+      div.className = `status ${type}`;
+      div.textContent = message;
+      statusDiv.appendChild(div);
+    }
+
+    async function createUser(userData) {
+      try {
+        // Create auth user
+        const userCredential = await createUserWithEmailAndPassword(auth, userData.email, PASSWORD);
+        const uid = userCredential.user.uid;
+
+        // Create Firestore user document
+        const userDoc = {
+          uid,
+          email: userData.email,
+          name: userData.name,
+          role: userData.role,
+          phone: userData.phone || '',
+          location: userData.location || '',
+          verified: userData.role === 'admin' || userData.role === 'donor',
+          createdAt: serverTimestamp()
+        };
+
+        // Add role-specific fields
+        if (userData.role === 'donor') {
+          userDoc.bloodGroup = userData.bloodGroup;
+          userDoc.availability = userData.availability;
+          userDoc.totalDonations = 0;
+          userDoc.lastDonation = null;
+        }
+
+        if (userData.role === 'ngo' || userData.role === 'hospital') {
+          userDoc.organizationName = userData.organizationName;
+          userDoc.organizationType = userData.organizationType;
+        }
+
+        await setDoc(doc(db, 'users', uid), userDoc);
+
+        // Sign out to create next user
+        await signOut(auth);
+
+        addStatus(`✅ Created: ${userData.email} (${userData.role})`, 'success');
+        return true;
+      } catch (error) {
+        if (error.code === 'auth/email-already-in-use') {
+          addStatus(`ℹ️ Already exists: ${userData.email}`, 'info');
+          await signOut(auth);
+          return true;
+        } else {
+          addStatus(`❌ Error creating ${userData.email}: ${error.message}`, 'error');
+          await signOut(auth);
+          return false;
+        }
+      }
+    }
+
+    window.createAllUsers = async function() {
+      const btn = document.getElementById('createBtn');
+      const statusDiv = document.getElementById('status');
+      
+      btn.disabled = true;
+      statusDiv.innerHTML = '';
+      
+      addStatus('🚀 Starting test user creation...', 'info');
+
+      for (const user of testUsers) {
+        await createUser(user);
+        // Small delay between users
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      addStatus('🎉 Done! All test users processed.', 'success');
+      addStatus('You can now log in at http://localhost:3000/login', 'info');
+      btn.disabled = false;
+    };
+  </script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { uploadVerificationDocument, validateFile } from '../../firebase/storageHelper';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -16,6 +17,9 @@ const Register = () => {
     organizationType: '',
     isNottoRegistered: false
   });
+  const [verificationDoc, setVerificationDoc] = useState(null);
+  const [docPreview, setDocPreview] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,6 +32,37 @@ const Register = () => {
       ...formData,
       [name]: type === 'checkbox' ? checked : value
     });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file
+    const validation = validateFile(file, {
+      maxSize: 5 * 1024 * 1024, // 5MB
+      allowedTypes: ['image/jpeg', 'image/png', 'application/pdf'],
+      allowedExtensions: ['.jpg', '.jpeg', '.png', '.pdf']
+    });
+
+    if (!validation.valid) {
+      setError(validation.error);
+      return;
+    }
+
+    setError('');
+    setVerificationDoc(file);
+
+    // Create preview for images
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDocPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setDocPreview('');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -63,11 +98,39 @@ const Register = () => {
         userDetails.verified = false; // Requires admin approval
       }
 
-      await register(formData.email, formData.password, userDetails);
+      // Register user first
+      const userCredential = await register(formData.email, formData.password, userDetails);
       
-      setSuccess('Account created successfully! Redirecting to login...');
+      // Upload verification document if NGO/Hospital and file selected
+      if ((formData.role === 'ngo' || formData.role === 'hospital') && verificationDoc) {
+        try {
+          setUploadProgress(50);
+          const docURL = await uploadVerificationDocument(
+            verificationDoc,
+            userCredential.user.uid,
+            formData.role
+          );
+          
+          // Update user profile with document URL
+          const { doc, updateDoc } = await import('firebase/firestore');
+          const { db } = await import('../../firebase/config');
+          await updateDoc(doc(db, 'users', userCredential.user.uid), {
+            verificationDocURL: docURL,
+            documentSubmittedAt: new Date().toISOString()
+          });
+          
+          setUploadProgress(100);
+          setSuccess('Account created with verification document! Admin will review shortly.');
+        } catch (uploadError) {
+          console.error('Document upload error:', uploadError);
+          setSuccess('Account created but document upload failed. You can upload it later from your profile.');
+        }
+      } else {
+        setSuccess('Account created successfully! Redirecting to dashboard...');
+      }
+      
       setTimeout(() => {
-        navigate('/login');
+        navigate('/dashboard');
       }, 2000);
     } catch (err) {
       setError('Failed to create account: ' + err.message);
@@ -381,23 +444,100 @@ const Register = () => {
                         name="organizationType"
                         value={formData.organizationType}
                         onChange={handleChange}
-                        placeholder="e.g., Blood Bank, Charity Hospital"
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+                        placeholder="Healthcare NGO, Multi-specialty Hospital, etc."
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-                    <div className="flex items-start">
-                      <span className="text-2xl mr-3">⏳</span>
-                      <div>
-                        <p className="font-semibold text-yellow-800 mb-1">Verification Required</p>
-                        <p className="text-sm text-yellow-700">
-                          Your account will require admin verification before you can access all features. This helps maintain platform integrity.
-                        </p>
-                      </div>
+                  {/* Document Upload */}
+                  <div>
+                    <label className="block text-gray-700 font-semibold mb-2 text-sm">
+                      Verification Document <span className="text-orange-500">(Recommended)</span>
+                    </label>
+                    <p className="text-xs text-gray-600 mb-3">
+                      Upload registration certificate, license, or official document (PDF, JPG, PNG - Max 5MB)
+                    </p>
+                    
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-primary-500 transition-colors">
+                      <input
+                        type="file"
+                        id="verificationDoc"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                      
+                      {!verificationDoc ? (
+                        <label
+                          htmlFor="verificationDoc"
+                          className="cursor-pointer flex flex-col items-center"
+                        >
+                          <div className="text-5xl mb-3">📄</div>
+                          <p className="text-gray-700 font-semibold mb-1">Click to upload document</p>
+                          <p className="text-sm text-gray-500">or drag and drop</p>
+                          <p className="text-xs text-gray-400 mt-2">PDF, JPG, PNG up to 5MB</p>
+                        </label>
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between bg-green-50 border border-green-300 rounded-lg p-4">
+                            <div className="flex items-center space-x-3">
+                              <span className="text-2xl">✅</span>
+                              <div>
+                                <p className="font-semibold text-gray-800">{verificationDoc.name}</p>
+                                <p className="text-xs text-gray-600">
+                                  {(verificationDoc.size / 1024).toFixed(1)} KB
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setVerificationDoc(null);
+                                setDocPreview('');
+                                document.getElementById('verificationDoc').value = '';
+                              }}
+                              className="text-red-600 hover:text-red-800 font-semibold"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                          
+                          {docPreview && (
+                            <div className="mt-3">
+                              <p className="text-sm font-semibold text-gray-700 mb-2">Preview:</p>
+                              <img
+                                src={docPreview}
+                                alt="Document preview"
+                                className="max-h-48 rounded-lg border border-gray-300"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
+                    
+                    {uploadProgress > 0 && uploadProgress < 100 && (
+                      <div className="mt-3">
+                        <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
+                          <span>Uploading document...</span>
+                          <span>{uploadProgress}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+                    <p className="text-sm text-yellow-800">
+                      <span className="font-semibold">⚠️ Note:</span> Your account will be pending verification until an admin reviews your documents. You'll receive a notification once approved.
+                    </p>
                   </div>
                 </div>
               )}

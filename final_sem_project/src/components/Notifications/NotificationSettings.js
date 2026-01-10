@@ -51,6 +51,7 @@ const NotificationSettings = () => {
     };
 
     loadSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   const handleEnablePushNotifications = async () => {
