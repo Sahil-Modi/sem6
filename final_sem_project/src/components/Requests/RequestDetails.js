@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { doc, getDoc, updateDoc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, serverTimestamp, addDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 
@@ -437,6 +437,36 @@ const RequestDetails = () => {
                     </>
                   )}
                 </button>
+              )}
+
+              {/* Message Button for Donors */}
+              {userData?.role === 'donor' && ['Verified', 'Matched', 'In Progress'].includes(request.status) && (
+                <button
+                  onClick={() => handleStartConversation(request.receiverId, request.receiverName)}
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 flex items-center justify-center"
+                >
+                  <span className="mr-2">💬</span>
+                  Message Receiver
+                </button>
+              )}
+
+              {/* Message Button for Receivers to contact Donors */}
+              {userData?.uid === request.receiverId && request.acceptedDonors && request.acceptedDonors.length > 0 && (
+                <div className="w-full">
+                  <p className="text-sm font-semibold text-gray-600 mb-2">Contact Donors:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {request.acceptedDonors.map((donorId, index) => (
+                      <button
+                        key={donorId}
+                        onClick={() => handleStartConversation(donorId, `Donor ${index + 1}`)}
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-md hover:shadow-lg flex items-center"
+                      >
+                        <span className="mr-2">💬</span>
+                        Message Donor {index + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {/* Status Update Buttons for Receiver/Admin */}
