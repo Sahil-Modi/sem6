@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { collection, query, where, orderBy, onSnapshot, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
+import { FaBell, FaClipboardList, FaCheckCircle, FaTimesCircle, FaHeart, FaExclamationTriangle } from 'react-icons/fa';
 import { onForegroundMessage } from '../../firebase/messagingHelper';
 import { Link } from 'react-router-dom';
 
@@ -97,13 +98,13 @@ const Notifications = () => {
 
   const getNotificationIcon = (type) => {
     switch(type) {
-      case 'verification_required': return '📋';
-      case 'request_verified': return '✅';
-      case 'request_rejected': return '❌';
-      case 'donor_accepted': return '🎉';
-      case 'request_completed': return '✓';
-      case 'new_request': return '🆘';
-      default: return '🔔';
+      case 'verification_required': return <FaClipboardList />;
+      case 'request_verified': return <FaCheckCircle />;
+      case 'request_rejected': return <FaTimesCircle />;
+      case 'donor_accepted': return <FaHeart />;
+      case 'request_completed': return <FaCheckCircle />;
+      case 'new_request': return <FaExclamationTriangle />;
+      default: return <FaBell />;
     }
   };
 
@@ -136,7 +137,7 @@ const Notifications = () => {
           <div className="fixed top-20 right-4 z-50 animate-slide-up">
             <div className="bg-white rounded-lg shadow-2xl border-l-4 border-primary-600 p-4 max-w-sm">
               <div className="flex items-start">
-                <span className="text-3xl mr-3">🔔</span>
+                <span className="text-3xl mr-3 text-primary-600"><FaBell /></span>
                 <div className="flex-1">
                   <h4 className="font-bold text-gray-900">{showToast.title}</h4>
                   <p className="text-sm text-gray-600 mt-1">{showToast.body}</p>
@@ -157,7 +158,7 @@ const Notifications = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                <span className="mr-3">🔔</span>
+                <FaBell className="mr-3 text-primary-600" />
                 Notifications
                 {unreadCount > 0 && (
                   <span className="ml-3 bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">

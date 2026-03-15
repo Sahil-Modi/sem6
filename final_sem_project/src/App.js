@@ -21,6 +21,8 @@ import Chat from './components/Chat/Chat';
 import DonationHistory from './components/Donations/DonationHistory';
 import Ratings from './components/Ratings/Ratings';
 import AdminPanel from './components/Admin/AdminPanel';
+import FAQ from './components/FAQ/FAQ';
+import FAQEditor from './components/Admin/FAQEditor';
 import { AboutPage, BlogPage, FAQPage, SupportPage, PartnersPage, PrivacyPage, TermsPage, CookiesPage } from './components/PlaceholderPages';
 import './App.css';
 
@@ -159,11 +161,26 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/faq-editor"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <FAQEditor />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/faq"
+              element={
+                <ProtectedRoute>
+                  <FAQ />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Footer Placeholder Pages */}
             <Route path="/about" element={<AboutPage />} />
             <Route path="/blog" element={<BlogPage />} />
-            <Route path="/faq" element={<FAQPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/partners" element={<PartnersPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />

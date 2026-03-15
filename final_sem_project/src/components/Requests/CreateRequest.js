@@ -4,6 +4,7 @@ import { addDoc, collection, serverTimestamp, query, where, getDocs, updateDoc, 
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import { geocodeAddress, getNearbyDonors, sortByDistance } from '../../utils/geocoding';
+import { FaHospital } from 'react-icons/fa';
 
 const CreateRequest = () => {
   const { currentUser, userData } = useAuth();
@@ -194,7 +195,7 @@ const CreateRequest = () => {
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-400">🏥</span>
+                      <FaHospital className="text-gray-400" />
                     </div>
                     <select 
                       name="type" 

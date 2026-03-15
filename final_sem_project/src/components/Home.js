@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { 
+  FaHospital, FaTint, FaHandshake, FaRobot, FaClipboardCheck, FaLink, FaHeart,
+  FaUserMd, FaBriefcase, FaHandsHelping, FaGlobe, FaStar, FaShieldAlt, FaAward,
+  FaRocket, FaFacebookSquare, FaTwitter, FaInstagram, FaLinkedin,
+  FaMapMarkerAlt, FaEnvelope, FaPhone, FaExclamationTriangle
+} from 'react-icons/fa';
 
 const Home = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -17,19 +23,19 @@ const Home = () => {
     {
       name: "Dr. Sarah Johnson",
       role: "Hospital Administrator",
-      image: "👩‍⚕️",
+      image: <FaUserMd className="inline-block text-primary-600" />,
       text: "MediReach has revolutionized how we connect with blood donors. We've saved countless lives thanks to this platform."
     },
     {
       name: "Michael Chen",
       role: "Regular Blood Donor",
-      image: "🧑‍💼",
+      image: <FaBriefcase className="inline-block text-blue-600" />,
       text: "Being able to help people in need instantly through MediReach gives me immense satisfaction. It's incredibly easy to use!"
     },
     {
       name: "Red Cross International",
       role: "NGO Partner",
-      image: "🤝",
+      image: <FaHandsHelping className="inline-block text-green-600" />,
       text: "The AI-powered matching system has increased our response efficiency by 300%. A game-changer for humanitarian work."
     }
   ];
@@ -48,8 +54,9 @@ const Home = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
           <div className={`text-center transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
             <div className="inline-block mb-4 animate-fade-in">
-              <span className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-full text-sm font-semibold backdrop-blur-sm">
-                🌍 Connecting Lives Worldwide
+              <span className="bg-white bg-opacity-20 text-white px-4 py-2 rounded-full text-sm font-semibold backdrop-blur-sm flex items-center justify-center gap-2">
+                <FaGlobe className="text-lg" />
+                Connecting Lives Worldwide
               </span>
             </div>
             <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
@@ -117,10 +124,10 @@ const Home = () => {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {[
-            { icon: "🩸", title: "Blood & Plasma", desc: "Connect with verified blood and plasma donors instantly with real-time availability.", color: "from-red-400 to-red-600" },
-            { icon: "🏥", title: "Hospital Network", desc: "Access verified hospitals and medical centers globally with 24/7 support.", color: "from-blue-400 to-blue-600" },
-            { icon: "🤝", title: "NGO Partnership", desc: "Work with trusted NGOs to fulfill medical needs efficiently and transparently.", color: "from-green-400 to-green-600" },
-            { icon: "🤖", title: "AI Matching", desc: "Smart algorithms match donors to urgent requests in seconds using location and compatibility.", color: "from-purple-400 to-purple-600" }
+            { icon: <FaTint className="text-red-500" />, title: "Blood & Plasma", desc: "Connect with verified blood and plasma donors instantly with real-time availability.", color: "from-red-400 to-red-600" },
+            { icon: <FaHospital className="text-blue-500" />, title: "Hospital Network", desc: "Access verified hospitals and medical centers globally with 24/7 support.", color: "from-blue-400 to-blue-600" },
+            { icon: <FaHandshake className="text-green-500" />, title: "NGO Partnership", desc: "Work with trusted NGOs to fulfill medical needs efficiently and transparently.", color: "from-green-400 to-green-600" },
+            { icon: <FaRobot className="text-purple-500" />, title: "AI Matching", desc: "Smart algorithms match donors to urgent requests in seconds using location and compatibility.", color: "from-purple-400 to-purple-600" }
           ].map((feature, index) => (
             <div 
               key={index}
@@ -151,9 +158,9 @@ const Home = () => {
             <div className="hidden md:block absolute top-24 left-1/4 right-1/4 h-1 bg-gradient-to-r from-primary-400 to-purple-400"></div>
 
             {[
-              { step: "1", title: "Register", desc: "Sign up as a donor, receiver, NGO, or hospital with verified credentials in minutes.", icon: "📝", color: "bg-blue-500" },
-              { step: "2", title: "Connect", desc: "Our AI instantly matches urgent requests with nearby verified donors and resources.", icon: "🔗", color: "bg-primary-500" },
-              { step: "3", title: "Save Lives", desc: "Fulfill requests with real-time tracking, transparent communication, and instant notifications.", icon: "❤️", color: "bg-red-500" }
+              { step: "1", title: "Register", desc: "Sign up as a donor, receiver, NGO, or hospital with verified credentials in minutes.", icon: <FaClipboardCheck className="text-white" />, color: "bg-blue-500" },
+              { step: "2", title: "Connect", desc: "Our AI instantly matches urgent requests with nearby verified donors and resources.", icon: <FaLink className="text-white" />, color: "bg-primary-500" },
+              { step: "3", title: "Save Lives", desc: "Fulfill requests with real-time tracking, transparent communication, and instant notifications.", icon: <FaHeart className="text-white" />, color: "bg-red-500" }
             ].map((item, index) => (
               <div key={index} className="relative text-center group">
                 <div className={`${item.color} w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg transform group-hover:scale-110 transition-all duration-300 group-hover:shadow-2xl relative z-10 animate-float`}>
@@ -216,9 +223,16 @@ const Home = () => {
             <h3 className="text-2xl font-bold text-gray-900 mb-4">Trusted & Certified By</h3>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 items-center opacity-60">
-            {["🏛️ WHO", "🏥 Red Cross", "🌐 UN Health", "⭐ ISO 9001", "🔒 HIPAA"].map((badge, index) => (
-              <div key={index} className="text-center text-2xl font-semibold text-gray-600 hover:text-primary-600 hover:scale-110 transition-all cursor-pointer">
-                {badge}
+            {[
+              { icon: <FaAward />, label: "WHO Certified" },
+              { icon: <FaHospital />, label: "Red Cross Partner" },
+              { icon: <FaGlobe />, label: "UN Health" },
+              { icon: <FaStar />, label: "ISO 9001" },
+              { icon: <FaShieldAlt />, label: "HIPAA Compliant" }
+            ].map((badge, index) => (
+              <div key={index} className="text-center text-gray-600 hover:text-primary-600 hover:scale-110 transition-all cursor-pointer flex flex-col items-center gap-2">
+                <span className="text-3xl">{badge.icon}</span>
+                <span className="text-sm font-semibold">{badge.label}</span>
               </div>
             ))}
           </div>
@@ -242,10 +256,10 @@ const Home = () => {
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link
               to="/register"
-              className="group bg-white text-primary-600 px-12 py-5 rounded-full text-xl font-bold hover:bg-yellow-300 hover:text-primary-700 transition-all duration-300 shadow-2xl hover:shadow-yellow-300/50 hover:scale-105 transform"
+              className="group bg-white text-primary-600 px-12 py-5 rounded-full text-xl font-bold hover:bg-yellow-300 hover:text-primary-700 transition-all duration-300 shadow-2xl hover:shadow-yellow-300/50 hover:scale-105 transform inline-flex items-center justify-center gap-2"
             >
               Get Started Today
-              <span className="inline-block ml-2 group-hover:translate-x-2 transition-transform">🚀</span>
+              <FaRocket className="group-hover:translate-x-2 transition-transform" />
             </Link>
             <Link
               to="/donors"
@@ -263,17 +277,27 @@ const Home = () => {
           <div className="grid md:grid-cols-4 gap-12">
             <div className="md:col-span-1">
               <div className="flex items-center space-x-2 mb-4">
-                <span className="text-3xl">🏥</span>
+                <FaHospital className="text-3xl text-primary-500" />
                 <span className="text-2xl font-bold text-white">MediReach</span>
               </div>
               <p className="text-gray-400 mb-6 leading-relaxed">
                 Connecting lives through technology, compassion, and instant healthcare resource matching worldwide.
               </p>
               <div className="flex space-x-4">
-                {['📘', '🐦', '📷', '💼'].map((icon, i) => (
-                  <button key={i} type="button" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-600 transition-all transform hover:scale-110">
-                    <span>{icon}</span>
-                  </button>
+                {[
+                  { icon: <FaFacebookSquare className="text-xl" />, name: 'Facebook', link: '#' },
+                  { icon: <FaTwitter className="text-xl" />, name: 'Twitter', link: '#' },
+                  { icon: <FaInstagram className="text-xl" />, name: 'Instagram', link: '#' },
+                  { icon: <FaLinkedin className="text-xl" />, name: 'LinkedIn', link: '#' }
+                ].map((social, i) => (
+                  <a 
+                    key={i} 
+                    href={social.link}
+                    aria-label={social.name}
+                    className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-600 transition-all duration-200 transform hover:scale-110 hover:-translate-y-1 shadow-md hover:shadow-lg"
+                  >
+                    {social.icon}
+                  </a>
                 ))}
               </div>
             </div>
@@ -287,7 +311,15 @@ const Home = () => {
                   {to: "/register", label: "Become a Donor"},
                   {to: "/requests", label: "Urgent Requests"}
                 ].map((link, i) => (
-                  <li key={i}><Link to={link.to} className="hover:text-primary-400 transition-colors hover:translate-x-1 inline-block transform">{link.label}</Link></li>
+                  <li key={i}>
+                    <Link 
+                      to={link.to} 
+                      className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-flex items-center transform hover-lift"
+                    >
+                      <span className="mr-2">→</span>
+                      {link.label}
+                    </Link>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -301,7 +333,15 @@ const Home = () => {
                   {to: "/support", label: "Support Center"},
                   {to: "/partners", label: "Partner With Us"}
                 ].map((link, i) => (
-                  <li key={i}><Link to={link.to} className="hover:text-primary-400 transition-colors hover:translate-x-1 inline-block transform">{link.label}</Link></li>
+                  <li key={i}>
+                    <Link 
+                      to={link.to} 
+                      className="text-gray-300 hover:text-white transition-all duration-200 hover:translate-x-1 inline-flex items-center transform hover-lift"
+                    >
+                      <span className="mr-2">→</span>
+                      {link.label}
+                    </Link>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -309,21 +349,21 @@ const Home = () => {
             <div>
               <h4 className="text-white font-bold text-lg mb-4">Contact Us</h4>
               <ul className="space-y-3">
-                <li className="flex items-start space-x-2">
-                  <span>📍</span>
+                <li className="flex items-start space-x-3 text-gray-300">
+                  <FaMapMarkerAlt className="text-xl text-primary-500 mt-1" />
                   <span>123 Health Street, Medical District, NY 10001</span>
                 </li>
-                <li className="flex items-center space-x-2">
-                  <span>📧</span>
-                  <a href="mailto:info@medireach.com" className="hover:text-primary-400 transition-colors">info@medireach.com</a>
+                <li className="flex items-center space-x-3">
+                  <FaEnvelope className="text-xl text-primary-500" />
+                  <a href="mailto:info@medireach.com" className="text-gray-300 hover:text-white transition-colors duration-200 hover-lift">info@medireach.com</a>
                 </li>
-                <li className="flex items-center space-x-2">
-                  <span>📞</span>
-                  <a href="tel:+1-800-MEDIREACH" className="hover:text-primary-400 transition-colors">+1-800-MEDIREACH</a>
+                <li className="flex items-center space-x-3">
+                  <FaPhone className="text-xl text-primary-500" />
+                  <a href="tel:+1-800-MEDIREACH" className="text-gray-300 hover:text-white transition-colors duration-200 hover-lift">+1-800-MEDIREACH</a>
                 </li>
-                <li className="flex items-center space-x-2">
-                  <span>🚨</span>
-                  <span className="text-red-400 font-semibold">24/7 Emergency Support</span>
+                <li className="flex items-center space-x-3">
+                  <FaExclamationTriangle className="text-xl text-red-500" />
+                  <span className="text-red-400 font-semibold animate-gentle-pulse">24/7 Emergency Support</span>
                 </li>
               </ul>
             </div>
@@ -335,9 +375,9 @@ const Home = () => {
                 © 2025 MediReach. All rights reserved. Saving lives, one connection at a time.
               </p>
               <div className="flex space-x-6 text-sm">
-                <Link to="/privacy" className="hover:text-primary-400 transition-colors">Privacy Policy</Link>
-                <Link to="/terms" className="hover:text-primary-400 transition-colors">Terms of Service</Link>
-                <Link to="/cookies" className="hover:text-primary-400 transition-colors">Cookie Policy</Link>
+                <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors duration-200 hover-lift">Privacy Policy</Link>
+                <Link to="/terms" className="text-gray-400 hover:text-white transition-colors duration-200 hover-lift">Terms of Service</Link>
+                <Link to="/cookies" className="text-gray-400 hover:text-white transition-colors duration-200 hover-lift">Cookie Policy</Link>
               </div>
             </div>
           </div>

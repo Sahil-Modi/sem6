@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { doc, getDoc, updateDoc, serverTimestamp, addDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
+import { FaTint, FaSyringe, FaLungs, FaPills, FaHospital, FaPhone, FaComments } from 'react-icons/fa';
 
 const RequestDetails = () => {
   const { id } = useParams();
@@ -257,12 +258,12 @@ const RequestDetails = () => {
           <div className="bg-gradient-to-r from-primary-600 to-purple-600 px-8 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <span className="text-5xl">
-                  {request.type === 'Blood' && '🩸'}
-                  {request.type === 'Plasma' && '💉'}
-                  {request.type === 'Oxygen' && '🫁'}
-                  {request.type === 'Medicine' && '💊'}
-                  {request.type === 'Other' && '🏥'}
+                <span className="text-5xl text-white">
+                  {request.type === 'Blood' && <FaTint />}
+                  {request.type === 'Plasma' && <FaSyringe />}
+                  {request.type === 'Oxygen' && <FaLungs />}
+                  {request.type === 'Medicine' && <FaPills />}
+                  {request.type === 'Other' && <FaHospital />}
                 </span>
                 <div>
                   <h1 className="text-3xl font-bold text-white">{request.type} Request</h1>
@@ -333,7 +334,7 @@ const RequestDetails = () => {
                 <div>
                   <label className="text-sm font-semibold text-gray-500 uppercase">Contact</label>
                   <p className="text-lg text-gray-800 flex items-center mt-2">
-                    <span className="mr-2">📞</span>
+                    <FaPhone className="mr-2 text-gray-600" />
                     {request.receiverPhone}
                   </p>
                 </div>
@@ -445,7 +446,7 @@ const RequestDetails = () => {
                   onClick={() => handleStartConversation(request.receiverId, request.receiverName)}
                   className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 flex items-center justify-center"
                 >
-                  <span className="mr-2">💬</span>
+                  <FaComments className="mr-2" />
                   Message Receiver
                 </button>
               )}
@@ -461,7 +462,7 @@ const RequestDetails = () => {
                         onClick={() => handleStartConversation(donorId, `Donor ${index + 1}`)}
                         className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-md hover:shadow-lg flex items-center"
                       >
-                        <span className="mr-2">💬</span>
+                        <FaComments className="mr-2" />
                         Message Donor {index + 1}
                       </button>
                     ))}

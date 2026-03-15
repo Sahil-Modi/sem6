@@ -1,0 +1,104 @@
+description,units,urgency_label
+Emergency bleeding patient needs immediate blood transfusion in ICU,4,Critical
+Critical accident case hemorrhaging severely requires urgent intervention,5,Critical
+Patient dying from massive blood loss in emergency room,6,Critical
+Severe trauma case needs immediate transfusion code red,5,Critical
+Life-threatening hemorrhage requires emergency blood supply now,4,Critical
+Critical cardiac surgery scheduled for tomorrow morning,3,Critical
+Stroke patient in ICU needs urgent blood transfusion,3,Critical
+Emergency C-section massive bleeding needs blood immediately,5,Critical
+Intensive care patient severe anemia critical condition,3,Critical
+Accident victim hemorrhaging needs emergency transfusion tonight,4,Critical
+Urgent surgery scheduled patient needs blood asap,3,High
+High priority operation tomorrow requires blood units,2,High
+Important chemotherapy session needs blood soon,2,High
+Urgent dialysis patient requires transfusion quickly,2,High
+Scheduled surgery next week needs blood preparation,2,High
+Pre-operative patient needs blood for planned procedure,3,High
+Post-operative complication requires urgent blood,3,High
+High priority cancer treatment needs transfusion today,2,High
+Urgent anemia treatment requires blood this week,2,High
+Important scheduled operation needs blood tomorrow,3,High
+Patient needs blood for routine surgery next month,2,Medium
+Regular transfusion required for planned treatment,2,Medium
+Scheduled procedure needs blood preparation,2,Medium
+Elective surgery patient requires blood next week,2,Medium
+Planned operation needs blood units,2,Medium
+Required for scheduled medical procedure,1,Medium
+Need blood for upcoming treatment,2,Medium
+Patient requires transfusion for planned therapy,2,Medium
+Regular blood needed for routine checkup,1,Medium
+Scheduled appointment needs blood supply,2,Medium
+Routine blood needed for regular patient,1,Low
+Regular transfusion for chronic condition,1,Low
+Preventive blood requirement for scheduled checkup,1,Low
+Routine procedure needs blood preparation,1,Low
+Regular patient needs blood for checkup,1,Low
+Scheduled routine transfusion required,1,Low
+Normal procedure requires blood,1,Low
+Regular medical requirement,1,Low
+Routine blood needed,1,Low
+Standard transfusion required,1,Low
+Patient in emergency room severe bleeding critical,5,Critical
+Urgent trauma case needs blood immediately,4,Critical
+Critical patient hemorrhaging requires emergency blood,5,Critical
+Emergency surgery bleeding patient needs transfusion now,4,Critical
+ICU patient critical anemia life-threatening,3,Critical
+Severe accident trauma massive blood loss emergency,6,Critical
+Critical condition patient dying needs blood immediately,5,Critical
+Emergency hemorrhage requires urgent transfusion tonight,4,Critical
+Life-threatening surgery needs blood right now,4,Critical
+Critical cardiac patient severe bleeding emergency,3,Critical
+High priority surgery tomorrow needs blood urgently,3,High
+Urgent cancer patient requires blood asap,2,High
+Important operation scheduled needs transfusion soon,3,High
+High urgency dialysis patient needs blood quickly,2,High
+Urgent pre-operative patient requires blood today,3,High
+Important surgery this week needs blood,2,High
+High priority treatment requires urgent transfusion,2,High
+Urgent chemotherapy needs blood tomorrow,2,High
+High urgency anemia treatment required soon,2,High
+Important procedure today needs blood quickly,3,High
+Planned surgery needs blood for next week,2,Medium
+Required for scheduled treatment procedure,2,Medium
+Need blood for routine operation,2,Medium
+Scheduled transfusion for planned therapy,2,Medium
+Elective procedure requires blood preparation,2,Medium
+Regular treatment needs blood supply,1,Medium
+Planned checkup requires transfusion,1,Medium
+Scheduled procedure needs blood,2,Medium
+Required for upcoming medical treatment,2,Medium
+Need blood for planned procedure,2,Medium
+Routine transfusion needed,1,Low
+Regular blood requirement,1,Low
+Standard procedure blood needed,1,Low
+Routine checkup requires blood,1,Low
+Regular patient transfusion,1,Low
+Normal blood requirement,1,Low
+Routine procedure requirement,1,Low
+Standard transfusion needed,1,Low
+Regular medical procedure blood,1,Low
+Routine requirement,1,Low
+Emergency patient bleeding critical condition ICU,5,Critical
+Severe trauma hemorrhaging needs immediate blood,5,Critical
+Critical surgery bleeding patient emergency,4,Critical
+Life-threatening anemia requires urgent blood now,3,Critical
+Emergency accident massive bleeding critical,6,Critical
+Urgent ICU patient severe blood loss,4,Critical
+Critical hemorrhage emergency transfusion needed,5,Critical
+Dying patient needs emergency blood immediately,5,Critical
+Surgery patient urgent blood required today,3,High
+Important operation needs blood asap,3,High
+High priority patient requires urgent transfusion,2,High
+Urgent treatment needs blood soon,2,High
+Important chemotherapy requires blood quickly,2,High
+High urgency surgery scheduled tomorrow,3,High
+Urgent dialysis patient needs blood today,2,High
+Planned surgery requires blood next week,2,Medium
+Scheduled procedure needs blood preparation,2,Medium
+Elective operation requires blood,2,Medium
+Regular treatment needs transfusion,1,Medium
+Routine procedure blood required,1,Medium
+Standard transfusion needed for patient,1,Low
+Regular blood requirement for checkup,1,Low
+Routine procedure requires blood,1,Low

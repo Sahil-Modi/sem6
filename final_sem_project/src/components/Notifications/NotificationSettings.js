@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
-import { useAuth } from '../../context/AuthContext';
-import { registerForPush } from '../../firebase/messagingHelper';
+import { useAuth } from '../../context/AuthContext';import { FaBell, FaClipboardList } from 'react-icons/fa';import { registerForPush } from '../../firebase/messagingHelper';
 import { Link } from 'react-router-dom';
 
 const NotificationSettings = () => {
@@ -152,7 +151,7 @@ const NotificationSettings = () => {
         <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
           <div className="bg-gradient-to-r from-primary-600 to-purple-600 px-8 py-6">
             <h2 className="text-2xl font-bold text-white flex items-center">
-              <span className="mr-3">🔔</span>
+              <FaBell className="mr-3" />
               Push Notifications
             </h2>
           </div>
@@ -208,7 +207,7 @@ const NotificationSettings = () => {
         <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
             <h2 className="text-2xl font-bold text-white flex items-center">
-              <span className="mr-3">📋</span>
+              <FaClipboardList className="mr-3" />
               Notification Preferences
             </h2>
           </div>

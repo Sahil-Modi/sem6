@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { collection, query, where, getDocs, updateDoc, doc, serverTimestamp, addDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
+import { FaTint, FaSyringe, FaLungs, FaPills, FaHospital, FaPhone } from 'react-icons/fa';
 
 const VerifyRequests = () => {
   const { userData } = useAuth();
@@ -165,12 +166,12 @@ const VerifyRequests = () => {
                 <div className="bg-gradient-to-r from-primary-600 to-purple-600 px-6 py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <span className="text-4xl">
-                        {r.type === 'Blood' && '🩸'}
-                        {r.type === 'Plasma' && '💉'}
-                        {r.type === 'Oxygen' && '🫁'}
-                        {r.type === 'Medicine' && '💊'}
-                        {r.type === 'Other' && '🏥'}
+                      <span className="text-4xl text-white">
+                        {r.type === 'Blood' && <FaTint />}
+                        {r.type === 'Plasma' && <FaSyringe />}
+                        {r.type === 'Oxygen' && <FaLungs />}
+                        {r.type === 'Medicine' && <FaPills />}
+                        {r.type === 'Other' && <FaHospital />}
                       </span>
                       <div>
                         <h3 className="text-2xl font-bold text-white">{r.type} Request</h3>
@@ -204,7 +205,7 @@ const VerifyRequests = () => {
                       <div>
                         <label className="text-sm font-semibold text-gray-500 uppercase">Contact</label>
                         <p className="text-lg text-gray-800 flex items-center mt-1">
-                          <span className="mr-2">📞</span>
+                          <FaPhone className="mr-2 text-gray-600" />
                           {r.receiverPhone}
                         </p>
                       </div>

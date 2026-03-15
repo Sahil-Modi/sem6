@@ -3,6 +3,7 @@ import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
+import { FaTint, FaSyringe, FaLungs, FaPills, FaHospital, FaClipboardList } from 'react-icons/fa';
 
 const RequestsList = () => {
   const { userData } = useAuth();
@@ -133,7 +134,9 @@ const RequestsList = () => {
 
         {filteredRequests.length === 0 ? (
           <div className="bg-white p-12 rounded-xl shadow-lg text-center">
-            <div className="text-6xl mb-4">📋</div>
+            <div className="text-6xl mb-4 text-primary-600">
+              <FaClipboardList className="inline-block" />
+            </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-2">No Requests Found</h3>
             <p className="text-gray-600">
               {filter === 'all' ? 'There are no requests to display.' : `No ${filter} requests at the moment.`}
@@ -147,12 +150,12 @@ const RequestsList = () => {
                 <div className="bg-gradient-to-r from-primary-50 to-purple-50 px-6 py-4 border-b-2 border-primary-100">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <span className="text-4xl">
-                        {r.type === 'Blood' && '🩸'}
-                        {r.type === 'Plasma' && '💉'}
-                        {r.type === 'Oxygen' && '🫁'}
-                        {r.type === 'Medicine' && '💊'}
-                        {r.type === 'Other' && '🏥'}
+                      <span className="text-4xl text-primary-600">
+                        {r.type === 'Blood' && <FaTint />}
+                        {r.type === 'Plasma' && <FaSyringe />}
+                        {r.type === 'Oxygen' && <FaLungs />}
+                        {r.type === 'Medicine' && <FaPills />}
+                        {r.type === 'Other' && <FaHospital />}
                       </span>
                       <div>
                         <h3 className="text-2xl font-bold text-gray-800">{r.type}</h3>

@@ -2,14 +2,63 @@ import React, { useEffect, useState } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { useAuth } from '../../context/AuthContext';
-import { sortByDistance, formatDistance } from '../../utils/geocoding';
+import { sortByDistance, formatDistance, geocodeAddress } from '../../utils/geocoding';
 import DonorMap from './DonorMap';
 import { Link } from 'react-router-dom';
+import { FaTint, FaClipboardList, FaPhone, FaComments } from 'react-icons/fa';
+
+const parseCoordinateValue = (value) => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const parsed = parseFloat(value.trim());
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const extractCoordinates = (user) => {
+  const lat = parseCoordinateValue(
+    user?.coordinates?.lat ?? user?.coordinates?.latitude ?? user?.lat ?? user?.latitude
+  );
+  const lng = parseCoordinateValue(
+    user?.coordinates?.lng ?? user?.coordinates?.lon ?? user?.coordinates?.longitude ?? user?.lng ?? user?.lon ?? user?.longitude
+  );
+
+  if (lat === null || lng === null) return null;
+  return { lat, lng };
+};
+
+const getCachedCoordinates = (location) => {
+  if (!location) return null;
+  try {
+    const key = `geo:${location.trim().toLowerCase()}`;
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (typeof parsed?.lat === 'number' && typeof parsed?.lng === 'number') {
+      return parsed;
+    }
+  } catch (error) {
+    console.error('Error reading geocode cache:', error);
+  }
+  return null;
+};
+
+const setCachedCoordinates = (location, coords) => {
+  if (!location || !coords) return;
+  try {
+    const key = `geo:${location.trim().toLowerCase()}`;
+    localStorage.setItem(key, JSON.stringify(coords));
+  } catch (error) {
+    console.error('Error writing geocode cache:', error);
+  }
+};
 
 const DonorDirectory = () => {
   const { userData } = useAuth();
   const [donors, setDonors] = useState([]);
   const [filteredDonors, setFilteredDonors] = useState([]);
+  const [mapUsers, setMapUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     bloodGroup: '',
@@ -22,9 +71,10 @@ const DonorDirectory = () => {
     const fetchDonors = async () => {
       setLoading(true);
       try {
-        const q = query(collection(db, 'users'), where('role', '==', 'donor'));
+        const q = query(collection(db, 'users'), where('role', 'in', ['donor', 'ngo', 'hospital']));
         const snap = await getDocs(q);
-        let data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        let data = allUsers.filter((u) => u.role === 'donor');
         
         // Sort by distance if user has coordinates
         if (userData?.coordinates?.lat && userData?.coordinates?.lng) {
@@ -33,6 +83,40 @@ const DonorDirectory = () => {
         
         setDonors(data);
         setFilteredDonors(data);
+
+        const usersWithCoordinates = await Promise.all(
+          allUsers.map(async (user) => {
+            const existingCoords = extractCoordinates(user);
+            if (existingCoords) {
+              return {
+                ...user,
+                coordinates: { lat: existingCoords.lat, lng: existingCoords.lng }
+              };
+            }
+
+            if (!user.location) return user;
+
+            const cached = getCachedCoordinates(user.location);
+            if (cached) {
+              return {
+                ...user,
+                coordinates: { lat: cached.lat, lng: cached.lng }
+              };
+            }
+
+            const geocoded = await geocodeAddress(user.location);
+            if (!geocoded) return user;
+
+            const coords = { lat: geocoded.lat, lng: geocoded.lng };
+            setCachedCoordinates(user.location, coords);
+            return {
+              ...user,
+              coordinates: coords
+            };
+          })
+        );
+
+        setMapUsers(usersWithCoordinates);
       } catch (err) {
         console.error('Error fetching donors:', err);
       } finally {
@@ -94,7 +178,10 @@ const DonorDirectory = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">🩸 Donor Directory</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+            <FaTint className="mr-3 text-primary-600" />
+            Donor Directory
+          </h1>
           <p className="text-gray-600">Find verified donors near you</p>
         </div>
 
@@ -154,7 +241,8 @@ const DonorDirectory = () => {
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
-                  📋 List
+                  <FaClipboardList className="mr-2" />
+                  List
                 </button>
                 <button
                   onClick={() => setViewMode('map')}
@@ -185,7 +273,7 @@ const DonorDirectory = () => {
           </div>
         ) : viewMode === 'map' ? (
           <div className="bg-white rounded-lg shadow-md p-4" style={{ height: '600px' }}>
-            <DonorMap donors={filteredDonors} center={[20, 0]} zoom={2} />
+            <DonorMap donors={mapUsers} center={[20, 0]} zoom={2} />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -194,8 +282,8 @@ const DonorDirectory = () => {
                 <div className="bg-gradient-to-r from-primary-600 to-purple-600 px-6 py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl">
-                        🩸
+                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl text-primary-600">
+                        <FaTint />
                       </div>
                       <div>
                         <h3 className="font-bold text-white text-lg">{donor.name || 'Anonymous'}</h3>
@@ -226,7 +314,7 @@ const DonorDirectory = () => {
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
-                        <span className="text-gray-400 mr-3">📞</span>
+                        <FaPhone className="text-gray-400 mr-3" />
                         <p className="text-sm text-gray-600">{donor.phone || 'Not provided'}</p>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -244,7 +332,8 @@ const DonorDirectory = () => {
                       to={`/chat`}
                       className="block w-full text-center bg-gradient-to-r from-primary-600 to-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:from-primary-700 hover:to-purple-700 transition-all duration-300"
                     >
-                      💬 Contact Donor
+                      <FaComments className="mr-2" />
+                      Contact Donor
                     </Link>
                   </div>
                 </div>

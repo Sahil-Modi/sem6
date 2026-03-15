@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { FaHospital, FaEnvelope, FaLock, FaExclamationTriangle } from 'react-icons/fa';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -52,7 +53,9 @@ const Login = () => {
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-500 hover:scale-[1.02]">
           {/* Header with Gradient */}
           <div className="bg-gradient-to-r from-primary-600 to-purple-600 px-8 py-10 text-center">
-            <div className="text-6xl mb-4 animate-float">🏥</div>
+            <div className="text-6xl mb-4 animate-float text-white">
+              <FaHospital className="inline-block" />
+            </div>
             <h1 className="text-3xl font-bold text-white mb-2">MediReach</h1>
             <p className="text-blue-100">Global Health Resource Network</p>
           </div>
@@ -65,7 +68,7 @@ const Login = () => {
             {error && (
               <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded mb-6 animate-slide-up">
                 <div className="flex items-center">
-                  <span className="text-xl mr-2">⚠️</span>
+                  <FaExclamationTriangle className="text-xl mr-2" />
                   <p className="text-sm">{error}</p>
                 </div>
               </div>
@@ -76,7 +79,7 @@ const Login = () => {
                 <label className="block text-gray-700 font-semibold mb-2 text-sm">Email Address</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-400">📧</span>
+                    <FaEnvelope className="text-gray-400" />
                   </div>
                   <input
                     type="email"
@@ -93,7 +96,7 @@ const Login = () => {
                 <label className="block text-gray-700 font-semibold mb-2 text-sm">Password</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-400">🔒</span>
+                    <FaLock className="text-gray-400" />
                   </div>
                   <input
                     type="password"

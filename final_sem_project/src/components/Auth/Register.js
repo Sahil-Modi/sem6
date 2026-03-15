@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { uploadVerificationDocument, validateFile } from '../../firebase/storageHelper';
+import { FaHospital, FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaTint, FaLock, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -152,7 +153,9 @@ const Register = () => {
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-500">
           {/* Header with Gradient */}
           <div className="bg-gradient-to-r from-primary-600 to-purple-600 px-8 py-10 text-center">
-            <div className="text-6xl mb-4 animate-float">🏥</div>
+            <div className="text-6xl mb-4 animate-float text-white">
+              <FaHospital className="inline-block" />
+            </div>
             <h1 className="text-3xl font-bold text-white mb-2">Join MediReach</h1>
             <p className="text-blue-100">Start saving lives today</p>
           </div>
@@ -165,7 +168,7 @@ const Register = () => {
             {error && (
               <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded mb-6 animate-slide-up">
                 <div className="flex items-center">
-                  <span className="text-xl mr-2">⚠️</span>
+                  <FaExclamationTriangle className="text-xl mr-2" />
                   <p className="text-sm">{error}</p>
                 </div>
               </div>
@@ -174,7 +177,7 @@ const Register = () => {
             {success && (
               <div className="bg-green-50 border-l-4 border-green-500 text-green-700 px-4 py-3 rounded mb-6 animate-slide-up">
                 <div className="flex items-center">
-                  <span className="text-xl mr-2">✅</span>
+                  <FaCheckCircle className="text-xl mr-2" />
                   <p className="text-sm">{success}</p>
                 </div>
               </div>
@@ -188,7 +191,7 @@ const Register = () => {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-400">👤</span>
+                    <FaUser className="text-gray-400" />
                   </div>
                   <select
                     name="role"
@@ -212,7 +215,7 @@ const Register = () => {
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-400">👨</span>
+                      <FaUser className="text-gray-400" />
                     </div>
                     <input
                       type="text"
@@ -232,7 +235,7 @@ const Register = () => {
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-400">📧</span>
+                      <FaEnvelope className="text-gray-400" />
                     </div>
                     <input
                       type="email"
@@ -254,7 +257,7 @@ const Register = () => {
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-400">🔒</span>
+                      <FaLock className="text-gray-400" />
                     </div>
                     <input
                       type="password"
@@ -274,7 +277,7 @@ const Register = () => {
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-400">🔒</span>
+                      <FaLock className="text-gray-400" />
                     </div>
                     <input
                       type="password"
@@ -296,7 +299,7 @@ const Register = () => {
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-400">📞</span>
+                      <FaPhone className="text-gray-400" />
                     </div>
                     <input
                       type="tel"
@@ -316,7 +319,7 @@ const Register = () => {
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-400">📍</span>
+                      <FaMapMarkerAlt className="text-gray-400" />
                     </div>
                     <input
                       type="text"
@@ -342,7 +345,7 @@ const Register = () => {
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-400">🩸</span>
+                        <FaTint className="text-gray-400" />
                       </div>
                       <select
                         name="bloodGroup"
@@ -396,7 +399,7 @@ const Register = () => {
                           rel="noopener noreferrer"
                           className="inline-flex items-center bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
                         >
-                          <span className="mr-2">🏥</span>
+                          <FaHospital className="mr-2" />
                           Register on NOTTO
                           <span className="ml-2">→</span>
                         </a>

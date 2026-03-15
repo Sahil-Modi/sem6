@@ -11,10 +11,44 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png')
 });
 
+const parseCoordinateValue = (value) => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const parsed = parseFloat(value.trim());
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const extractCoordinates = (user) => {
+  const lat = parseCoordinateValue(
+    user?.coordinates?.lat ?? user?.coordinates?.latitude ?? user?.lat ?? user?.latitude
+  );
+  const lng = parseCoordinateValue(
+    user?.coordinates?.lng ?? user?.coordinates?.lon ?? user?.coordinates?.longitude ?? user?.lng ?? user?.lon ?? user?.longitude
+  );
+
+  if (lat === null || lng === null) return null;
+  return { lat, lng };
+};
+
 const DonorMap = ({ donors, center = [20, 0], zoom = 2 }) => {
   const positions = donors
-    .filter(d => d.coordinates && typeof d.coordinates.lat === 'number')
-    .map(d => ({ id: d.id, name: d.name, bloodGroup: d.bloodGroup, lat: d.coordinates.lat, lng: d.coordinates.lng, availability: d.availability }));
+    .map((d) => {
+      const coords = extractCoordinates(d);
+      if (!coords) return null;
+
+      const role = d.role === 'donor' ? 'donor' : 'organization';
+      return {
+        id: d.id,
+        role,
+        bloodGroup: d.bloodGroup,
+        lat: coords.lat,
+        lng: coords.lng,
+        availability: d.availability
+      };
+    })
+    .filter(Boolean);
 
   return (
     <div className="h-96 w-full rounded overflow-hidden">
@@ -24,9 +58,17 @@ const DonorMap = ({ donors, center = [20, 0], zoom = 2 }) => {
           <Marker key={p.id} position={[p.lat, p.lng]}>
             <Popup>
               <div className="text-sm">
-                <div className="font-semibold">{p.name || 'Donor'}</div>
-                <div>Blood: {p.bloodGroup || 'N/A'}</div>
-                <div>Status: {p.availability ? 'Available' : 'Unavailable'}</div>
+                <div className="font-semibold">
+                  {p.role === 'donor' ? 'Donor Marker' : 'Organization Marker'}
+                </div>
+                {p.role === 'donor' ? (
+                  <>
+                    <div>Blood: {p.bloodGroup || 'N/A'}</div>
+                    <div>Status: {p.availability ? 'Available' : 'Unavailable'}</div>
+                  </>
+                ) : (
+                  <div>Healthcare/NGO location</div>
+                )}
               </div>
             </Popup>
           </Marker>

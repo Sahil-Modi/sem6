@@ -1,6 +1,11 @@
 """
 MediReach AI Donor Matcher Service
 A Flask microservice for intelligent donor-receiver matching using ML algorithms
+
+Version 2.0: Production ML System
+- XGBoost for donor matching
+- TF-IDF + Logistic Regression for urgency prediction
+- Real-time inference with trained models
 """
 
 from flask import Flask, request, jsonify
@@ -8,10 +13,50 @@ from flask_cors import CORS
 import numpy as np
 from geopy.distance import geodesic
 from datetime import datetime
-import json
+import joblib
+import os
+import traceback
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
+
+# ML Model paths
+MODEL_DIR = os.path.join(os.path.dirname(__file__), 'ml')
+DONOR_MODEL_PATH = os.path.join(MODEL_DIR, 'donor_model.pkl')
+URGENCY_MODEL_PATH = os.path.join(MODEL_DIR, 'urgency_model.pkl')
+FEATURES_PATH = os.path.join(MODEL_DIR, 'feature_columns.pkl')
+
+# Load ML models at startup
+print("🤖 Loading ML models...")
+try:
+    from ml.preprocess import prepare_donor_features, encode_urgency
+    
+    if os.path.exists(DONOR_MODEL_PATH):
+        donor_model = joblib.load(DONOR_MODEL_PATH)
+        print("✓ Donor matching model loaded")
+        USE_ML_DONOR = True
+    else:
+        print("⚠️  Donor model not found - using fallback rule-based system")
+        USE_ML_DONOR = False
+        donor_model = None
+    
+    if os.path.exists(URGENCY_MODEL_PATH):
+        urgency_model = joblib.load(URGENCY_MODEL_PATH)
+        print("✓ Urgency prediction model loaded")
+        USE_ML_URGENCY = True
+    else:
+        print("⚠️  Urgency model not found - using fallback rule-based system")
+        USE_ML_URGENCY = False
+        urgency_model = None
+        
+except Exception as e:
+    print(f"❌ Error loading models: {e}")
+    print("⚠️  Falling back to rule-based systems")
+    USE_ML_DONOR = False
+    USE_ML_URGENCY = False
+    donor_model = None
+    urgency_model = None
+
 
 class DonorMatcher:
     """
@@ -165,13 +210,46 @@ class DonorMatcher:
 matcher = DonorMatcher()
 
 
+@app.route('/', methods=['GET'])
+def home():
+    """Root endpoint - API information"""
+    return jsonify({
+        'service': 'MediReach AI Donor Matcher',
+        'version': '2.0.0',
+        'status': 'running',
+        'mlModels': {
+            'donorMatching': USE_ML_DONOR,
+            'urgencyPrediction': USE_ML_URGENCY
+        },
+        'endpoints': {
+            'health': '/health',
+            'matchDonors': '/api/match-donors',
+            'predictUrgency': '/api/predict-urgency',
+            'calculateDistance': '/api/calculate-distance'
+        },
+        'documentation': 'See ML_PRODUCTION_GUIDE.md for API documentation'
+    })
+
+
 @app.route('/health', methods=['GET'])
 def health_check():
-    """Health check endpoint"""
+    """Health check endpoint with ML model status"""
     return jsonify({
         'status': 'healthy',
         'service': 'MediReach AI Donor Matcher',
-        'version': '1.0.0',
+        'version': '2.0.0',
+        'mlModels': {
+            'donorMatching': {
+                'enabled': USE_ML_DONOR,
+                'type': 'XGBoost Classifier' if USE_ML_DONOR else 'Rule-Based',
+                'status': 'active' if USE_ML_DONOR else 'fallback'
+            },
+            'urgencyPrediction': {
+                'enabled': USE_ML_URGENCY,
+                'type': 'TF-IDF + Logistic Regression' if USE_ML_URGENCY else 'Rule-Based',
+                'status': 'active' if USE_ML_URGENCY else 'fallback'
+            }
+        },
         'timestamp': datetime.now().isoformat()
     })
 
@@ -179,7 +257,7 @@ def health_check():
 @app.route('/api/match-donors', methods=['POST'])
 def match_donors():
     """
-    Match donors to a request using AI algorithm
+    Match donors to a request using ML model or fallback rule-based system
     
     Request body:
     {
@@ -188,7 +266,8 @@ def match_donors():
             "type": "Blood",
             "urgency": "High",
             "location": "Mumbai",
-            "coordinates": {"lat": 19.076, "lng": 72.877}
+            "coordinates": {"lat": 19.076, "lng": 72.877},
+            "bloodGroup": "A+"
         },
         "limit": 10  // Optional: number of top matches to return
     }
@@ -209,8 +288,61 @@ def match_donors():
         if not request_data:
             return jsonify({'error': 'No request data provided'}), 400
         
-        # Rank donors
-        ranked_donors = matcher.rank_donors(donors, request_data)
+        ranked_donors = []
+        
+        # ML-based matching
+        if USE_ML_DONOR and donor_model:
+            print(f"🤖 Using ML model for {len(donors)} donors")
+            
+            for donor in donors:
+                try:
+                    # Calculate distance
+                    if request_data.get('coordinates') and donor.get('coordinates'):
+                        receiver_coords = (
+                            request_data['coordinates']['lat'],
+                            request_data['coordinates']['lng']
+                        )
+                        donor_coords = (
+                            donor['coordinates']['lat'],
+                            donor['coordinates']['lng']
+                        )
+                        distance = geodesic(receiver_coords, donor_coords).kilometers
+                        donor['distance_km'] = distance
+                    else:
+                        distance = 50.0  # Default distance
+                        donor['distance_km'] = distance
+                    
+                    # Prepare features
+                    features = prepare_donor_features(donor, request_data)
+                    
+                    # Get ML prediction probability
+                    prob = donor_model.predict_proba([features])[0][1]  # Probability of success
+                    
+                    ranked_donors.append({
+                        'id': donor.get('id'),
+                        'name': donor.get('name'),
+                        'bloodGroup': donor.get('bloodGroup'),
+                        'location': donor.get('location'),
+                        'phone': donor.get('phone'),
+                        'availability': donor.get('availability'),
+                        'matchScore': round(prob * 100, 2),  # ML probability as percentage
+                        'matchProbability': round(prob, 4),
+                        'distance': round(distance, 2),
+                        'reliability': round((donor.get('completedDonations', 0) / 
+                                            max(donor.get('totalDonations', 1), 1)) * 100, 2),
+                        'method': 'ML'
+                    })
+                except Exception as e:
+                    print(f"Error processing donor {donor.get('id')}: {e}")
+                    continue
+            
+            # Sort by match probability (highest first)
+            ranked_donors.sort(key=lambda x: x['matchProbability'], reverse=True)
+            
+        else:
+            # Fallback to rule-based system
+            print(f"⚙️  Using rule-based system for {len(donors)} donors")
+            ranked_donors = matcher.rank_donors(donors, request_data)
         
         # Return top matches
         top_matches = ranked_donors[:limit]
@@ -223,12 +355,15 @@ def match_donors():
             'requestDetails': {
                 'type': request_data.get('type'),
                 'urgency': request_data.get('urgency'),
-                'location': request_data.get('location')
+                'location': request_data.get('location'),
+                'bloodGroup': request_data.get('bloodGroup')
             },
+            'matchingMethod': 'ML' if USE_ML_DONOR else 'Rule-Based',
             'timestamp': datetime.now().isoformat()
         })
     
     except Exception as e:
+        print(f"Error in match_donors: {traceback.format_exc()}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -238,13 +373,89 @@ def match_donors():
 @app.route('/api/predict-urgency', methods=['POST'])
 def predict_urgency():
     """
-    Enhanced ML-based urgency prediction using keyword analysis and medical terminology
+    ML-based urgency prediction with fallback to rule-based system
     Analyzes request descriptions to predict urgency level with confidence scores
     """
     try:
         data = request.get_json()
-        description = data.get('description', '').lower()
+        description = data.get('description', '')
         units = data.get('units', 1)
+        
+        if not description:
+            return jsonify({'error': 'Description is required'}), 400
+        
+        # ML-based prediction
+        if USE_ML_URGENCY and urgency_model:
+            print("🤖 Using ML model for urgency prediction")
+            
+            try:
+                # Get prediction
+                predicted_urgency = urgency_model.predict([description])[0]
+                probabilities = urgency_model.predict_proba([description])[0]
+                confidence = float(max(probabilities))
+                
+                # Get all class probabilities
+                classes = urgency_model.classes_
+                class_probabilities = {
+                    class_name: float(prob) 
+                    for class_name, prob in zip(classes, probabilities)
+                }
+                
+                # Generate recommendation based on prediction
+                recommendations = {
+                    'Critical': {
+                        'message': 'Immediate action required. Notify all available donors within 10km radius.',
+                        'radius': 50,
+                        'priority': 'immediate',
+                        'response_time': '< 1 hour'
+                    },
+                    'High': {
+                        'message': 'Urgent attention needed. Prioritize donor notifications.',
+                        'radius': 25,
+                        'priority': 'high',
+                        'response_time': '< 6 hours'
+                    },
+                    'Medium': {
+                        'message': 'Standard processing. Notify donors within 24 hours.',
+                        'radius': 15,
+                        'priority': 'normal',
+                        'response_time': '< 24 hours'
+                    },
+                    'Low': {
+                        'message': 'Routine request. Standard notification schedule.',
+                        'radius': 10,
+                        'priority': 'routine',
+                        'response_time': '< 48 hours'
+                    }
+                }
+                
+                rec = recommendations.get(predicted_urgency, recommendations['Low'])
+                
+                return jsonify({
+                    'success': True,
+                    'predictedUrgency': predicted_urgency,
+                    'confidence': round(confidence, 3),
+                    'classProbabilities': class_probabilities,
+                    'recommendation': rec['message'],
+                    'suggestedActions': {
+                        'notificationRadius': rec['radius'],
+                        'priorityLevel': rec['priority'],
+                        'estimatedResponseTime': rec['response_time']
+                    },
+                    'method': 'ML',
+                    'modelInfo': {
+                        'type': 'TF-IDF + Logistic Regression',
+                        'classes': list(classes)
+                    }
+                })
+                
+            except Exception as e:
+                print(f"ML prediction error: {e}, falling back to rule-based")
+                # Fall through to rule-based system
+        
+        # Fallback to rule-based prediction
+        print("⚙️  Using rule-based system for urgency prediction")
+        description_lower = description.lower()
         
         # Enhanced keyword dictionary with medical terminology
         critical_keywords = {
@@ -311,19 +522,19 @@ def predict_urgency():
         
         # Check critical keywords
         for keyword, weight in critical_keywords.items():
-            if keyword in description:
+            if keyword in description_lower:
                 urgency_score += weight
                 matched_keywords.append((keyword, 'critical', weight))
         
         # Check high keywords
         for keyword, weight in high_keywords.items():
-            if keyword in description:
+            if keyword in description_lower:
                 urgency_score += weight
                 matched_keywords.append((keyword, 'high', weight))
         
         # Check medium keywords
         for keyword, weight in medium_keywords.items():
-            if keyword in description:
+            if keyword in description_lower:
                 urgency_score += weight
                 matched_keywords.append((keyword, 'medium', weight))
         
@@ -339,7 +550,7 @@ def predict_urgency():
         # Time-based indicators
         time_indicators = ['hours', 'hour', 'minutes', 'now']
         for indicator in time_indicators:
-            if indicator in description:
+            if indicator in description_lower:
                 urgency_score += 2
                 matched_keywords.append((indicator, 'time-critical', 2))
                 break
@@ -347,7 +558,7 @@ def predict_urgency():
         # Negative indicators (reduce urgency)
         non_urgent_keywords = ['routine', 'regular', 'checkup', 'preventive', 'scheduled for next month']
         for keyword in non_urgent_keywords:
-            if keyword in description:
+            if keyword in description_lower:
                 urgency_score = max(0, urgency_score - 2)
                 matched_keywords.append((keyword, 'non-urgent', -2))
         
@@ -390,7 +601,8 @@ def predict_urgency():
                 'notificationRadius': 50 if predicted_urgency == 'Critical' else 25 if predicted_urgency == 'High' else 15,
                 'priorityLevel': 'immediate' if urgency_score >= 8 else 'high' if urgency_score >= 5 else 'normal',
                 'estimatedResponseTime': '< 1 hour' if urgency_score >= 8 else '< 6 hours' if urgency_score >= 5 else '< 24 hours'
-            }
+            },
+            'method': 'Rule-Based'
         })
     
     except Exception as e:
@@ -432,18 +644,27 @@ def calculate_distance():
 
 
 if __name__ == '__main__':
-    print("""
+    ml_donor_status = "✓ Loaded" if USE_ML_DONOR else "⚠ Using fallback"
+    ml_urgency_status = "✓ Loaded" if USE_ML_URGENCY else "⚠ Using fallback"
+    
+    print(f"""
     ╔══════════════════════════════════════════════════╗
-    ║   MediReach AI Donor Matcher Service Started    ║
-    ║   Version: 1.0.0                                 ║
+    ║   MediReach AI Donor Matcher Service v2.0       ║
+    ║   Production ML System                           ║
     ║   Port: 5000                                     ║
     ╚══════════════════════════════════════════════════╝
     
-    Available Endpoints:
+    🤖 ML Models Status:
+    - Donor Matching: {ml_donor_status}
+    - Urgency Prediction: {ml_urgency_status}
+    
+    📡 Available Endpoints:
     - GET  /health                 - Health check
-    - POST /api/match-donors       - Match donors to requests
-    - POST /api/predict-urgency    - Predict urgency from description
+    - POST /api/match-donors       - Match donors to requests (ML)
+    - POST /api/predict-urgency    - Predict urgency from description (ML)
     - POST /api/calculate-distance - Calculate distance between points
+    
+    ⚙️  Fallback: Rule-based systems active for any missing models
     """)
     
     app.run(debug=True, host='0.0.0.0', port=5000)
